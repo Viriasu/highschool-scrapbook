@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High School Memory Collection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 50%, #9b59b6 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><pattern id="grain" patternUnits="userSpaceOnUse" width="100" height="100"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="50" cy="10" r="0.8" fill="rgba(255,255,255,0.08)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            font-weight: 300;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.85;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .grade-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .grade-tab {
+            flex: 1;
+            padding: 20px 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            min-width: 120px;
+        }
+
+        .grade-tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .grade-tab:hover {
+            color: #475569;
+            background: rgba(100, 116, 139, 0.05);
+        }
+
+        .grade-tab.active {
+            color: #1e293b;
+            background: rgba(102, 126, 234, 0.08);
+        }
+
+        .grade-tab.active::after {
+            width: 60%;
+        }
+
+        .scrapbook-page {
+            min-height: 700px;
+            padding: 40px;
+            background: 
+                radial-gradient(circle at 25px 25px, rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 75px 75px, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+            background-size: 100px 100px;
+            position: relative;
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-photo-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .add-text-btn {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .memory-item {
+            position: absolute;
+            cursor: move;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            backdrop-filter: blur(10px);
+        }
+
+        .memory-item:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+            z-index: 1000;
+        }
+
+        .memory-item.dragging {
+            transform: scale(1.05);
+            opacity: 0.9;
+            z-index: 1001;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .photo-item {
+            background: white;
+            padding: 16px;
+            max-width: 280px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .photo-caption {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #64748b;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        .text-item {
+            background: rgba(255, 255, 255, 0.95);
+            color: #334155;
+            padding: 24px;
+            border-radius: 16px;
+            max-width: 320px;
+            font-size: 1em;
+            line-height: 1.6;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            font-weight: 400;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .memory-item:hover .delete-btn {
+            display: flex;
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.6);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .grade-content {
+            display: none;
+        }
+
+        .grade-content.active {
+            display: block;
+        }
+
+        .stats {
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+
+        .stats span {
+            display: inline-block;
+            margin: 0 20px;
+            font-weight: 500;
+            color: #475569;
+            font-size: 0.95em;
+        }
+
+        .memory-counter {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .grade-tabs {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .control-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .header p {
+                font-size: 1em;
+            }
+            
+            .scrapbook-page {
+                padding: 24px;
+            }
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #64748b;
+            font-size: 1.1em;
+            margin-top: 80px;
+            font-weight: 300;
+            line-height: 1.6;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .photo-shadow {
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+
+        .text-accent {
+            border-left: 4px solid #667eea;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(226, 232, 240, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+        }
+
+        /* Loading animation for images */
+        .photo-item img {
+            transition: opacity 0.3s ease;
+        }
+
+        .photo-item img[src=""] {
+            opacity: 0;
+        }
+
+        /* Enhanced button icons */
+        .control-btn::before {
+            font-size: 1.1em;
+        }
+
+        /* Glassmorphism effect */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>High School Memory Collection</h1>
+            <p>Curate and preserve your academic journey from Grade 7 through Grade 12</p>
+        </div>
+
+        <div class="grade-tabs">
+            <button class="grade-tab active" data-grade="7">Grade 7</button>
+            <button class="grade-tab" data-grade="8">Grade 8</button>
+            <button class="grade-tab" data-grade="9">Grade 9</button>
+            <button class="grade-tab" data-grade="10">Grade 10</button>
+            <button class="grade-tab" data-grade="11">Grade 11</button>
+            <button class="grade-tab" data-grade="12">Grade 12</button>
+        </div>
+
+        <div id="grade-7" class="grade-content active">
+            <div class="scrapbook-page">
+                <div class="stats">
+                    <span class="memory-counter">Total Memories: 0</span>
+                    <span>📷 Photos: 0</span>
+                    <span>📄 Notes: 0</span>
+                </div>
+                <div class="controls">
+                    <button class="control-btn add-photo-btn" onclick="addPhoto(7)">📷 Add Photo</button>
+                    <button class="control-btn add-text-btn" onclick="addText(7)">📄 Add Note</button>
+                    <button class="control-btn clear-btn" onclick="clearGrade(7)">🗑 Clear All</button>
+                </div>
+                <div class="welcome-message">Begin documenting your Grade 7 experiences and milestones</div>
+            </div>
+        </div>
+
+        <div id="grade-8" class="grade-content">
+            <div class="scrapbook-page">
+                <div class="stats">
+                    <span class="memory-counter">Total Memories: 0</span>
+                    <span>📷 Photos: 0</span>
+                    <span>📄 Notes: 0</span>
+                </div>
+                <div class="controls">
+                    <button class="control-btn add-photo-btn" onclick="addPhoto(8)">📷 Add Photo</button>
+                    <button class="control-btn add-text-btn" onclick="addText(8)">📄 Add Note</button>
+                    <button class="control-btn clear-btn" onclick="clearGrade(8)">🗑 Clear All</button>
+                </div>
+                <div class="welcome-message">Capture your Grade 8 achievements and memorable moments</div>
+            </div>
+        </div>
+
+        <div id="grade-9" class="grade-content">
+            <div class="scrapbook-page">
+                <div class="stats">
+                    <span class="memory-counter">Total Memories: 0</span>
+                    <span>📷 Photos: 0</span>
+                    <span>📄 Notes: 0</span>
+                </div>
+                <div class="controls">
+                    <button class="control-btn add-photo-btn" onclick="addPhoto(9)">📷 Add Photo</button>
+                    <button class="control-btn add-text-btn" onclick="addText(9)">📄 Add Note</button>
+                    <button class="control-btn clear-btn" onclick="clearGrade(9)">🗑 Clear All</button>
+                </div>
+                <div class="welcome-message">Document your Grade 9 growth and academic journey</div>
+            </div>
+        </div>
+
+        <div id="grade-10" class="grade-content">
+            <div class="scrapbook-page">
+                <div class="stats">
+                    <span class="memory-counter">Total Memories: 0</span>
+                    <span>📷 Photos: 0</span>
+                    <span>📄 Notes: 0</span>
+                </div>
+                <div class="controls">
+                    <button class="control-btn add-photo-btn" onclick="addPhoto(10)">📷 Add Photo</button>
+                    <button class="control-btn add-text-btn" onclick="addText(10)">📄 Add Note</button>
+                    <button class="control-btn clear-btn" onclick="clearGrade(10)">🗑 Clear All</button>
+                </div>
+                <div class="welcome-message">Preserve your Grade 10 highlights and personal development</div>
+            </div>
+        </div>
+
+        <div id="grade-11" class="grade-content">
+            <div class="scrapbook-page">
+                <div class="stats">
+                    <span class="memory-counter">Total Memories: 0</span>
+                    <span>📷 Photos: 0</span>
+                    <span>📄 Notes: 0</span>
+                </div>
+                <div class="controls">
+                    <button class="control-btn add-photo-btn" onclick="addPhoto(11)">📷 Add Photo</button>
+                    <button class="control-btn add-text-btn" onclick="addText(11)">📄 Add Note</button>
+                    <button class="control-btn clear-btn" onclick="clearGrade(11)">🗑 Clear All</button>
+                </div>
+                <div class="welcome-message">Chronicle your Grade 11 experiences and academic progress</div>
+            </div>
+        </div>
+
+        <div id="grade-12" class="grade-content">
+            <div class="scrapbook-page">
+                <div class="stats">
+                    <span class="memory-counter">Total Memories: 0</span>
+                    <span>📷 Photos: 0</span>
+                    <span>📄 Notes: 0</span>
+                </div>
+                <div class="controls">
+                    <button class="control-btn add-photo-btn" onclick="addPhoto(12)">📷 Add Photo</button>
+                    <button class="control-btn add-text-btn" onclick="addText(12)">📄 Add Note</button>
+                    <button class="control-btn clear-btn" onclick="clearGrade(12)">🗑 Clear All</button>
+                </div>
+                <div class="welcome-message">Celebrate your final year achievements and lasting memories</div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileUpload(event)">
+
+    <script>
+        let currentGrade = 7;
+        let currentFileGrade = 7;
+        let draggedElement = null;
+        let offset = { x: 0, y: 0 };
+        let memories = {
+            7: [], 8: [], 9: [], 10: [], 11: [], 12: []
+        };
+
+        // Tab switching with smooth animations
+        document.querySelectorAll('.grade-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const grade = parseInt(tab.dataset.grade);
+                switchGrade(grade);
+            });
+        });
+
+        function switchGrade(grade) {
+            // Remove active class from all tabs and content
+            document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.grade-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            document.querySelector(`[data-grade="${grade}"]`).classList.add('active');
+            document.getElementById(`grade-${grade}`).classList.add('active');
+            
+            currentGrade = grade;
+            updateStats(grade);
+        }
+
+        function addPhoto(grade) {
+            currentFileGrade = grade;
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    createPhotoMemory(e.target.result, currentFileGrade);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function createPhotoMemory(imageSrc, grade) {
+            const caption = prompt("Add a caption for this photo (optional):", "");
+            
+            const photoDiv = document.createElement('div');
+            photoDiv.className = 'memory-item photo-item photo-shadow';
+            photoDiv.innerHTML = `
+                <img src="${imageSrc}" alt="Memory photo">
+                ${caption ? `<div class="photo-caption">${caption}</div>` : ''}
+                <button class="delete-btn" onclick="deleteMemory(this)">×</button>
+            `;
+
+            positionMemory(photoDiv, grade);
+            
+            const memory = {
+                type: 'photo',
+                src: imageSrc,
+                caption: caption || '',
+                x: parseInt(photoDiv.style.left),
+                y: parseInt(photoDiv.style.top)
+            };
+            
+            memories[grade].push(memory);
+            updateStats(grade);
+            hideWelcomeMessage(grade);
+        }
+
+        function addText(grade) {
+            const text = prompt("Write your note or memory:", "");
+            if (text === null || text.trim() === '') return;
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'memory-item text-item text-accent';
+            textDiv.innerHTML = `
+                ${text}
+                <button class="delete-btn" onclick="deleteMemory(this)">×</button>
+            `;
+
+            positionMemory(textDiv, grade);
+            
+            const memory = {
+                type: 'text',
+                content: text,
+                x: parseInt(textDiv.style.left),
+                y: parseInt(textDiv.style.top)
+            };
+            
+            memories[grade].push(memory);
+            updateStats(grade);
+            hideWelcomeMessage(grade);
+        }
+
+        function positionMemory(element, grade) {
+            const page = document.querySelector(`#grade-${grade} .scrapbook-page`);
+            const maxX = Math.max(200, page.offsetWidth - 300);
+            const maxY = Math.max(200, page.offsetHeight - 400);
+            
+            const x = Math.random() * maxX + 50;
+            const y = Math.random() * maxY + 200;
+            
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            
+            page.appendChild(element);
+            makeDraggable(element);
+        }
+
+        function makeDraggable(element) {
+            element.addEventListener('mousedown', startDrag);
+            element.addEventListener('touchstart', startDrag, { passive: false });
+        }
+
+        function startDrag(e) {
+            draggedElement = e.target.closest('.memory-item');
+            if (!draggedElement || e.target.classList.contains('delete-btn')) return;
+
+            draggedElement.classList.add('dragging');
+            
+            const rect = draggedElement.getBoundingClientRect();
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            
+            offset.x = clientX - rect.left;
+            offset.y = clientY - rect.top;
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', stopDrag);
+            
+            e.preventDefault();
+        }
+
+        function drag(e) {
+            if (!draggedElement) return;
+
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            
+            const page = draggedElement.parentElement;
+            const pageRect = page.getBoundingClientRect();
+            
+            let x = clientX - pageRect.left - offset.x;
+            let y = clientY - pageRect.top - offset.y;
+            
+            // Keep within bounds with padding
+            x = Math.max(10, Math.min(x, page.offsetWidth - draggedElement.offsetWidth - 10));
+            y = Math.max(10, Math.min(y, page.offsetHeight - draggedElement.offsetHeight - 10));
+            
+            draggedElement.style.left = x + 'px';
+            draggedElement.style.top = y + 'px';
+            
+            e.preventDefault();
+        }
+
+        function stopDrag() {
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+            }
+            
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('touchend', stopDrag);
+        }
+
+        function deleteMemory(button) {
+            const memoryItem = button.parentElement;
+            const grade = currentGrade;
+            
+            if (confirm("Are you sure you want to delete this memory?")) {
+                // Find the index in memories array
+                const page = memoryItem.parentElement;
+                const items = Array.from(page.querySelectorAll('.memory-item'));
+                const index = items.indexOf(memoryItem);
+                
+                memoryItem.style.opacity = '0';
+                memoryItem.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    memoryItem.remove();
+                    if (index >= 0 && index < memories[grade].length) {
+                        memories[grade].splice(index, 1);
+                    }
+                    updateStats(grade);
+                    
+                    if (memories[grade].length === 0) {
+                        showWelcomeMessage(grade);
+                    }
+                }, 200);
+            }
+        }
+
+        function clearGrade(grade) {
+            if (confirm(`Are you sure you want to clear all memories from Grade ${grade}?`)) {
+                const page = document.querySelector(`#grade-${grade} .scrapbook-page`);
+                const memoryItems = page.querySelectorAll('.memory-item');
+                
+                memoryItems.forEach((item, index) => {
+                    setTimeout(() => {
+                        item.style.opacity = '0';
+                        item.style.transform = 'scale(0.8)';
+                        setTimeout(() => item.remove(), 200);
+                    }, index * 50);
+                });
+                
+                memories[grade] = [];
+                updateStats(grade);
+                
+                setTimeout(() => showWelcomeMessage(grade), memoryItems.length * 50 + 200);
+            }
+        }
+
+        function updateStats(grade) {
+            const stats = document.querySelector(`#grade-${grade} .stats`);
+            const totalMemories = memories[grade].length;
+            const photos = memories[grade].filter(m => m.type === 'photo').length;
+            const texts = memories[grade].filter(m => m.type === 'text').length;
+            
+            stats.innerHTML = `
+                <span class="memory-counter">Total Memories: ${totalMemories}</span>
+                <span>📷 Photos: ${photos}</span>
+                <span>📄 Notes: ${texts}</span>
+            `;
+        }
+
+        function hideWelcomeMessage(grade) {
+            const welcome = document.querySelector(`#grade-${grade} .welcome-message`);
+            if (welcome) {
+                welcome.style.opacity = '0';
+                setTimeout(() => welcome.style.display = 'none', 300);
+            }
+        }
+
+        function showWelcomeMessage(grade) {
+            const welcome = document.querySelector(`#grade-${grade} .welcome-message`);
+            if (welcome) {
+                welcome.style.display = 'block';
+                welcome.style.opacity = '0';
+                setTimeout(() => welcome.style.opacity = '1', 50);
+            }
+        }
+
+        // Initialize
+        updateStats(7);
+
+        // Prevent default drag behavior on images
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
